@@ -1,0 +1,15 @@
+# Private Shadowrocket exports and local review data
+input/
+.local/
+
+# Isolated development worktrees
+.worktrees/
+
+# Temporary files
+*.tmp
+*.part
+
+# macOS and Python metadata
+.DS_Store
+__pycache__/
+*.py[cod]
