@@ -17,5 +17,6 @@ Custom rules are inserted immediately after `[Rule]`. GitHub Actions checks dail
 
 ## Subscription
 
-After publication, this section will contain the exact Raw link verified from GitHub. The same configuration works on Mac and iPhone Shadowrocket.
+Use this Raw URL on both Mac and iPhone Shadowrocket:
 
+https://raw.githubusercontent.com/34wolf/shadowrocket-rules/main/output/my_shadowrocket.conf
