@@ -1,0 +1,47 @@
+name: Update Shadowrocket rules
+
+on:
+  schedule:
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-shadowrocket-rules
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Build latest configuration
+        run: >-
+          python -m scripts.build_config
+          --custom custom_rules.conf
+          --output output/my_shadowrocket.conf
+
+      - name: Commit changed public output
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- output/my_shadowrocket.conf
+          if git diff --cached --quiet; then
+            echo "Upstream output is unchanged."
+            exit 0
+          fi
+          git commit -m "build: update Shadowrocket rules"
+          git push
