@@ -41,7 +41,7 @@ class RuleToolsTests(unittest.TestCase):
         )
         upstream = "[Rule]\nDOMAIN,shared.example,PROXY\n"
         self.assertEqual(
-            find_candidates(exported, upstream),
+            find_candidates(exported, upstream, anchor_size=1),
             [
                 {
                     "rule": "DOMAIN,my.example,DIRECT",
@@ -51,6 +51,45 @@ class RuleToolsTests(unittest.TestCase):
             ],
         )
 
+    def test_candidates_stop_at_policy_independent_upstream_anchor(self):
+        exported = (
+            "[Rule]\n"
+            "DOMAIN,custom-one.example,DIRECT\n"
+            "DOMAIN,custom-now-upstream.example,DIRECT\n"
+            "DOMAIN,base-one.example,My Proxy\n"
+            "DOMAIN,base-two.example,My Proxy\n"
+            "DOMAIN,base-three.example,My Proxy\n"
+            "DOMAIN,old-upstream-only.example,My Proxy\n"
+        )
+        upstream = (
+            "[Rule]\n"
+            "DOMAIN,base-one.example,PROXY\n"
+            "DOMAIN,base-two.example,PROXY\n"
+            "DOMAIN,base-three.example,PROXY\n"
+            "DOMAIN,custom-now-upstream.example,PROXY\n"
+        )
+        self.assertEqual(
+            find_candidates(exported, upstream, anchor_size=3),
+            [
+                {
+                    "rule": "DOMAIN,custom-one.example,DIRECT",
+                    "classification": "unclassified",
+                    "warning": "",
+                },
+                {
+                    "rule": "DOMAIN,custom-now-upstream.example,DIRECT",
+                    "classification": "unclassified",
+                    "warning": "",
+                },
+            ],
+        )
+
+    def test_missing_upstream_anchor_fails_instead_of_flooding_candidates(self):
+        exported = "[Rule]\nDOMAIN,unrelated.example,DIRECT\n"
+        upstream = "[Rule]\nDOMAIN,base.example,PROXY\n"
+        with self.assertRaisesRegex(ValueError, "anchor"):
+            find_candidates(exported, upstream, anchor_size=1)
+
     def test_non_rule_sections_never_become_candidates(self):
         exported = (
             "[General]\nserver=secret\n"
@@ -58,7 +97,7 @@ class RuleToolsTests(unittest.TestCase):
             "[MITM]\npassword=secret\n"
         )
         upstream = "[Rule]\nDOMAIN,shared.example,PROXY\n"
-        self.assertEqual(find_candidates(exported, upstream), [])
+        self.assertEqual(find_candidates(exported, upstream, anchor_size=1), [])
 
     def test_sensitive_url_rule_is_flagged(self):
         self.assertIn(

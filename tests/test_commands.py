@@ -18,7 +18,7 @@ class CommandTests(unittest.TestCase):
         upstream = "[Rule]\nDOMAIN,base.example,PROXY\n"
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory) / "candidates.json"
-            count = write_candidate_report(exported, upstream, target)
+            count = write_candidate_report(exported, upstream, target, anchor_size=1)
             data = json.loads(target.read_text(encoding="utf-8"))
 
         self.assertEqual(count, 1)

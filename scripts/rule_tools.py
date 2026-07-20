@@ -69,14 +69,42 @@ def public_rule_issue(rule: str) -> Optional[str]:
     return None
 
 
-def find_candidates(export_text: str, upstream_text: str) -> List[Dict[str, str]]:
+def _rule_identity(rule: str) -> tuple:
+    parts = normalize_rule(rule).split(",")
+    return tuple(part.casefold() for part in parts[:2])
+
+
+def find_candidates(
+    export_text: str,
+    upstream_text: str,
+    anchor_size: int = 10,
+) -> List[Dict[str, str]]:
     exported = active_rules(extract_section(export_text, "Rule"))
-    upstream = set(active_rules(extract_section(upstream_text, "Rule")))
+    upstream = active_rules(extract_section(upstream_text, "Rule"))
+    if anchor_size < 1:
+        raise ValueError("anchor size must be positive")
+    if len(upstream) < anchor_size:
+        raise ValueError("upstream [Rule] section is shorter than the anchor")
+
+    upstream_anchor = [_rule_identity(rule) for rule in upstream[:anchor_size]]
+    exported_identities = [_rule_identity(rule) for rule in exported]
+    base_start = next(
+        (
+            index
+            for index in range(len(exported) - anchor_size + 1)
+            if exported_identities[index : index + anchor_size] == upstream_anchor
+        ),
+        None,
+    )
+    if base_start is None:
+        raise ValueError(
+            "could not locate a safe upstream anchor in the exported [Rule] section"
+        )
+
     result = []
     seen = set()
-
-    for rule in exported:
-        if rule in upstream or rule in seen:
+    for rule in exported[:base_start]:
+        if rule in seen:
             continue
         seen.add(rule)
         result.append(

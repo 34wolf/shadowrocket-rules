@@ -11,8 +11,9 @@ def write_candidate_report(
     export_text: str,
     upstream_text: str,
     target: Path,
+    anchor_size: int = 10,
 ) -> int:
-    candidates = find_candidates(export_text, upstream_text)
+    candidates = find_candidates(export_text, upstream_text, anchor_size=anchor_size)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         json.dumps(candidates, ensure_ascii=False, indent=2) + "\n",
@@ -45,4 +46,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
