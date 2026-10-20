@@ -117,6 +117,34 @@ def find_candidates(
     return result
 
 
+def apply_direct_dns_settings(text: str) -> str:
+    """Keep DIRECT domains on system DNS and accept legitimate private answers."""
+    extract_section(text, "General")
+    lines = _lines(text)
+    header = next(
+        index
+        for index, line in enumerate(lines)
+        if (_section_name(line) or "").casefold() == "general"
+    )
+    end = next(
+        (index for index in range(header + 1, len(lines)) if _section_name(lines[index])),
+        len(lines),
+    )
+    settings = {"dns-direct-system": "true", "private-ip-answer": "true"}
+    body = [
+        line
+        for line in lines[header + 1 : end]
+        if line.partition("=")[0].strip().casefold() not in settings
+    ]
+    output = [
+        *lines[: header + 1],
+        *(f"{key} = {value}" for key, value in settings.items()),
+        *body,
+        *lines[end:],
+    ]
+    return "\n".join(output).rstrip("\n") + "\n"
+
+
 def merge_custom_rules(upstream_text: str, custom_text: str) -> str:
     custom = []
     seen = set()

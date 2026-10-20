@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-from scripts.rule_tools import merge_custom_rules
+from scripts.rule_tools import apply_direct_dns_settings, merge_custom_rules
 
 
 DEFAULT_UPSTREAM = (
@@ -53,7 +53,7 @@ def write_atomic(target: Path, text: str) -> None:
 
 def build_from_text(upstream_text: str, custom_text: str, target: Path) -> None:
     merged = merge_custom_rules(upstream_text, custom_text)
-    write_atomic(target, merged)
+    write_atomic(target, apply_direct_dns_settings(merged))
 
 
 def main() -> int:

@@ -15,6 +15,19 @@ https://johnshall.github.io/Shadowrocket-ADBlock-Rules-Forever/sr_top500_banlist
 
 Custom rules are inserted immediately after `[Rule]`. GitHub Actions checks daily at 11:15 Beijing time and commits only changed output.
 
+## Company network compatibility
+
+Every build explicitly enables these settings under `[General]`:
+
+```conf
+dns-direct-system = true
+private-ip-answer = true
+```
+
+Domains matched by DIRECT rules use the current network's system DNS, and private IP answers are allowed. This supports company sites that require internal DNS. PROXY rules keep their existing routing policies. No company DNS address or internal IP is stored in this repository.
+
+GitHub schedules may run later than the configured time; check Actions for the actual execution time.
+
 ## Subscription
 
 Use this Raw URL on both Mac and iPhone Shadowrocket:
